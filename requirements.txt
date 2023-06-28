@@ -1,0 +1,7 @@
+fastapi
+requests
+pydantic
+urllib
+sqlalchemy
+uuid
+bcrypt
