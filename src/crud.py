@@ -25,7 +25,7 @@ def create_user(db: Session, user: schemas.UserCreate):
     try:
         password: str = user.password.encode('utf-8')
         hashed_password: str = bcrypt.hashpw(password, bcrypt.gensalt())
-        db_user = models.User(email=user.email, name=user.name, user_type=user.user_type, hashed_password=hashed_password, user_type=user.user_type):
+        db_user = models.User(email=user.email, name=user.name, user_type=user.user_type, hashed_password=hashed_password, user_type=user.user_type)
 
         db.add(db_user)
         db.commit()
