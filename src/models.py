@@ -18,7 +18,9 @@ class Post(Base):
     created_date = Column(DateTime, default=datetime.now())
     author_id = Column(Uuid, ForeignKey("users.id"))
 
-    author = relationship("User", back_populates='posts')
+    # 관계가 두개 이상인 경우, foreign_key = ~~로 명시 가능
+    author = relationship("User", back_populates='posts',
+                          foreign_keys=[author_id])
 
 
 class OAuthUser(Base):
@@ -28,7 +30,7 @@ class OAuthUser(Base):
     user_id = Column(Uuid, ForeignKey('users.id'), nullable=False)
 
     oauth_provider = Column(Enum(UserType), name='oauth_provider')
-    user = relationship("User", back_populates='oauth')
+    user = relationship("User", back_populates='oauth', foreign_keys=[user_id])
 
 
 class User(Base):
@@ -42,9 +44,12 @@ class User(Base):
     user_type = Column(Enum(OAuthProvider), name='user_type')
 
     created_date = Column(DateTime, default=datetime.now())
-    posts = relationship('Post', back_populates='author')
-    oauth = relationship('OAuthUser', back_populates='user')
-    token = relationship('UserToken', back_populates='user')
+    posts = relationship('Post', back_populates='author',
+                         foreign_keys='Post.author_id')
+    oauth = relationship('OAuthUser', back_populates='user',
+                         foreign_keys='OAuthUser.user_id')
+    token = relationship('UserToken', back_populates='user',
+                         foreign_keys='UserToken.user_id')
 
     __table_args__ = (
         CheckConstraint(
@@ -69,4 +74,4 @@ class UserToken(Base):
     # Default token duration is 1hour
     expireDate = Column(DateTime)
 
-    user = relationship('User', back_populates='token')
+    user = relationship('User', back_populates='token', foreign_keys=[user_id])
