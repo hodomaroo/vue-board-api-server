@@ -4,9 +4,6 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from pydantic import UUID4
 from src.error import CustomDBError
-# 암호화 모듈 import
-import bcrypt
-
 
 # Post CRUD API
 def get_post(db: Session, post_id: UUID4) -> models.Post | None:

@@ -5,8 +5,8 @@ from src import schemas, models
 from src.crud import post
 
 router = APIRouter(
-    prefix="/items",
-    tags=['items']
+    prefix="/posts",
+    tags=['posts']
 )
 
 
@@ -16,4 +16,3 @@ async def get_post_by_post_id(response: Response, post_id: str, db: Session = De
     if not post:
         raise HTTPException(status_code=404, detail="Post not Exist")
     return post
-

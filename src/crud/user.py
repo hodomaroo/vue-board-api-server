@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from pydantic import UUID4
 from src.error import CustomDBError
+from src.schemas import OAuthProvider
 # 암호화 모듈 import
 import bcrypt
 
@@ -25,21 +26,31 @@ def get_users_by_name(db: Session, name: str) -> List[models.User]:
     return db.query(models.User).filter(models.User.name == name).all()
 
 
-def create_user(db: Session, user: schemas.UserCreate):
+def create_user(db: Session, user: schemas.UserCreate, commit: bool = True):
     try:
-        password: str = user.password.encode('utf-8')
-        hashed_password: str = bcrypt.hashpw(password, bcrypt.gensalt())
-        db_user = models.User(email=user.email, name=user.name,
-                              user_type=user.user_type, hashed_password=hashed_password)
+        if user.user_type == schemas.UserType.LOCAL:
+            password: str = user.password.encode('utf-8')
+            hashed_password: str = bcrypt.hashpw(password, bcrypt.gensalt())
+            db_user = models.User(user_id=user.user_id, email=user.email, name=user.name,
+                                  user_type=user.user_type, hashed_password=hashed_password)
+        else:
+            db_user = models.User(user_id=user.user_id, email=user.email, name=user.name,
+                                  user_type=user.user_type)
 
+        # if commit:
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
 
     except IntegrityError as e:
-        raise CustomDBError(err_type=IntegrityError, detail=e.orig)
+        print("CHECK")
+        raise CustomDBError(err_type=IntegrityError, detail=str(e))
 
     return db_user
+
+
+def get_users(db: Session):
+    return db.query(models.User).all()
 
 # get api for oauth user
 
@@ -48,21 +59,25 @@ def get_oauth_user_by_id(db: Session, id: str) -> models.OAuthUser | None:
     return db.query(models.OAuthUser).filter(models.OAuthUser.id == id).first()
 
 
-def create_oauth_user(db: Session, oauth_user: schemas.OAuthUser, user_id: UUID4) -> models.User:
+def create_oauth_user(db: Session, user: schemas.User, oauth: schemas.OAuthBase) -> models.User:
     try:
-        db_oauth_user = models.OAuthUser(
-            id=oauth_user.id,
-            user_id=user_id,
 
-            oauth_provider=oauth_user.oauth_provider
-        )
-        db.add(db_oauth_user)
+        db_user = create_user(db, user, commit=True)
+        oauth_user = models.OAuthUser(
+            user_id=db_user.id,
+            oauth_provider=oauth.oauth_provider)
+
+        # db.add(db_user)
+        db.add(oauth_user)
+
         db.commit()
-        db.refresh(db_oauth_user)
+
+        # db.refresh(db_user)
+        db.refresh(oauth_user)
 
     except IntegrityError as e:
         raise CustomDBError(err_type=IntegrityError, detail=e.orig)
 
-    return db_oauth_user
+    return user
 
     # Post CRUD API

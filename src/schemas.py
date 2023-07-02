@@ -1,17 +1,17 @@
-from typing import List, Union, Text
-from pydantic import BaseModel, UUID4
-from datetime import datetime
+from __future__ import annotations
 from enum import Enum
+from datetime import datetime
+from pydantic import BaseModel, UUID4
+from typing import List, Union, Text, Optional
 
 
 class UserType(Enum):
-    OAUTH = 'OAtuth'
-    LOCAL = 'Local'
+    OAUTH = 'OAUTH'
+    LOCAL = 'LOCAL'
 
 
 class OAuthProvider(Enum):
-    GOOGLE = 'Google'
-    LOCAL = 'Local'
+    GOOGLE = 'GOOGLE'
 
 
 class PostBase(BaseModel):
@@ -33,7 +33,8 @@ class Post(PostBase):
 
 
 class UserBase(BaseModel):
-    name: str
+    user_id: str
+    name: str | None
     email: str | None
     user_type: UserType
 
@@ -45,17 +46,21 @@ class UserCreate(UserBase):
 class User(UserBase):
     id: UUID4
     created_date: datetime
-    posts: List[Post] = []
+    posts: List[Post] | None
+    oauth: Optional[List[OAuthUser]]
 
     class Config:
         orm_mode = True
 
 
-class OAuthUser(BaseModel):
-    id: str
-    user_id: UUID4
+class OAuthBase(BaseModel):
     oauth_provider: OAuthProvider
-    user: User
+
+
+class OAuthUser(OAuthBase):
+    id: UUID4
+    user_id: UUID4
+    # user: User
 
     class Config:
         orm_mode = True
@@ -64,7 +69,10 @@ class OAuthUser(BaseModel):
 class Token(BaseModel):
     token: str
     expireDate: datetime
-    user: User
+    # user: User
 
     class Config:
         orm_mode = True
+
+
+User.update_forward_refs()
