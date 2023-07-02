@@ -1,21 +1,12 @@
 from fastapi import APIRouter, Header, Response, status, Depends, HTTPException
-# from src.database import get_db
+from src.database import get_db
 from sqlalchemy.orm import Session
-from src import crud, schemas, models
-from src.database import SessionLocal
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
+from src import schemas, models
+from src.crud import user as crud
 
 router = APIRouter(
-    prefix="/items",
-    tags=['items']
+    prefix="/users",
+    tags=['users']
 )
 
 
