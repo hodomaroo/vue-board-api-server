@@ -2,9 +2,9 @@ from sqlalchemy import DateTime, Column, Uuid, String, ForeignKey, Text, Enum, C
 from sqlalchemy.orm import relationship
 
 from .database import Base
-
-import datetime
+from datetime import datetime, timedelta
 import uuid
+from src.schemas import UserType, OAuthProvider
 
 
 class Post(Base):
@@ -27,27 +27,46 @@ class OAuthUser(Base):
     id = Column(String, primary_key=True)
     user_id = Column(Uuid, ForeignKey('users.id'), nullable=False)
 
-    oauth_provider = Column(Enum('GitHub', 'Google'), name='user_type_enum')
-    user = relationship("User", back_populates='user')
+    oauth_provider = Column(Enum(UserType), name='oauth_provider')
+    user = relationship("User", back_populates='oauth')
 
 
 class User(Base):
     __tablename__ = 'users'
 
-    id = Column(Uuid, primary_key=True, default=uuid.uuid4)
-
+    id = Column(Uuid, primary_key=True, default=uuid.uuid4())
+    user_id = Column(String, unique=True, index=True)
     name = Column(String, nullable=False)
     hashed_password = Column(String)
     email = Column(String, nullable=False, unique=True)
-    user_type = Column(Enum('OAuth', 'Local'), name='user_type_enum')
+    user_type = Column(Enum(OAuthProvider), name='user_type')
 
     created_date = Column(DateTime, default=datetime.now())
     posts = relationship('Post', back_populates='author')
-    user = relationship('OAuthUser', back_populates='user')
+    oauth = relationship('OAuthUser', back_populates='user')
+    token = relationship('UserToken', back_populates='user')
 
     __table_args__ = (
         CheckConstraint(
             "(user_type = 'OAuth' AND hashed_password IS NULL) OR (user_type != 'OAuth' AND password IS NOT NULL)",
             name='password_validation_by_user_type'
-        )
+        ),
+        CheckConstraint(
+            "(user_type = 'OAuth') OR (user_id IS NOT NULL)",
+            name='id_validation_by_user_type'
+        ),
     )
+
+# using User Token when user logined to service
+
+
+class UserToken(Base):
+    __tablename__ = 'tokens'
+
+    id = Column(Uuid, primary_key=True, default=uuid.uuid4())
+    user_id = Column(Uuid, ForeignKey('users.id'))
+    token = Column(String)
+    # Default token duration is 1hour
+    expireDate = Column(DateTime)
+
+    user = relationship('User', back_populates='token')

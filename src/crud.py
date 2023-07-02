@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from pydantic import UUID4
-from error import CustomDBError
+from src.error import CustomDBError
 # 암호화 모듈 import
 import bcrypt
 
@@ -11,6 +11,10 @@ import bcrypt
 # User CRUD API
 def get_user(db: Session, user_id: UUID4) -> models.User | None:
     return db.query(models.User).filter(models.User.id == user_id).first()
+
+
+def get_user_by_user_id(db: Session, user_id: UUID4) -> models.User | None:
+    return db.query(models.User).filter(models.User.user_id == user_id).first()
 
 
 def get_user_by_email(db: Session, email: str) -> models.User | None:
@@ -25,7 +29,8 @@ def create_user(db: Session, user: schemas.UserCreate):
     try:
         password: str = user.password.encode('utf-8')
         hashed_password: str = bcrypt.hashpw(password, bcrypt.gensalt())
-        db_user = models.User(email=user.email, name=user.name, user_type=user.user_type, hashed_password=hashed_password, user_type=user.user_type)
+        db_user = models.User(email=user.email, name=user.name,
+                              user_type=user.user_type, hashed_password=hashed_password)
 
         db.add(db_user)
         db.commit()
