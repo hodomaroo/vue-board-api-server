@@ -26,16 +26,22 @@ async def get_user_by_user_id(response: Response, user_id: str, db: Session = De
     return user
 
 
-@router.post("", status_code=status.HTTP_201_CREATED)
-async def create_user(response: Response, user: schemas.UserCreate, oauth: Optional[schemas.OAuthBase], db: Session = Depends(get_db)):
+@router.post("", status_code=status.HTTP_201_CREATED, response_model=schemas.User)
+async def create_user(response: Response, user: schemas.UserCreate, oauth: Optional[schemas.OAuthBase] = None, db: Session = Depends(get_db)):
     try:
         if user.user_type == schemas.UserType.LOCAL:
             db_user = crud.create_user(db=db, user=user)
         else:
-            db_user = crud.create_oauth_user(db=db, user=user, oauth=oauth)
+            db_user = crud.create_oauth_user(
+                db=db, user=user, oauth=oauth)
+
+            print(schemas.User.from_orm(db_user))
+
         return db_user
 
     except CustomDBError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=e.detail
         )
+    except Exception as e:
+        print(str(e))

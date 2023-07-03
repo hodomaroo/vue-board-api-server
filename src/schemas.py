@@ -1,7 +1,7 @@
 from __future__ import annotations
 from enum import Enum
 from datetime import datetime
-from pydantic import BaseModel, UUID4
+from pydantic import BaseModel, UUID4, Field
 from typing import List, Union, Text, Optional
 
 
@@ -47,7 +47,7 @@ class User(UserBase):
     id: UUID4
     created_date: datetime
     posts: List[Post] | None
-    oauth: Optional[List[OAuthUser]]
+    oauth: Optional[OAuthUser] = Field(default=None)
 
     class Config:
         orm_mode = True
@@ -60,7 +60,6 @@ class OAuthBase(BaseModel):
 class OAuthUser(OAuthBase):
     id: UUID4
     user_id: UUID4
-    # user: User
 
     class Config:
         orm_mode = True
@@ -69,7 +68,6 @@ class OAuthUser(OAuthBase):
 class Token(BaseModel):
     token: str
     expireDate: datetime
-    # user: User
 
     class Config:
         orm_mode = True

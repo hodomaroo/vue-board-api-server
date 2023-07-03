@@ -47,9 +47,9 @@ class User(Base):
     posts = relationship('Post', back_populates='author',
                          foreign_keys='Post.author_id')
     oauth = relationship('OAuthUser', back_populates='user',
-                         foreign_keys='OAuthUser.user_id')
+                         foreign_keys='OAuthUser.user_id', uselist=False)
     token = relationship('UserToken', back_populates='user',
-                         foreign_keys='UserToken.user_id')
+                         foreign_keys='UserToken.user_id', uselist=False)
 
     CheckConstraint(
         "(user_type = 'OAUTH' AND hashed_password IS NULL) OR (user_type == 'LOCAL' AND hashed_password IS NOT NULL)",

@@ -37,10 +37,10 @@ def create_user(db: Session, user: schemas.UserCreate, commit: bool = True):
             db_user = models.User(user_id=user.user_id, email=user.email, name=user.name,
                                   user_type=user.user_type)
 
-        # if commit:
-        db.add(db_user)
-        db.commit()
-        db.refresh(db_user)
+        if commit:
+            db.add(db_user)
+            db.commit()
+            db.refresh(db_user)
 
     except IntegrityError as e:
         print("CHECK")
@@ -59,7 +59,7 @@ def get_oauth_user_by_id(db: Session, id: str) -> models.OAuthUser | None:
     return db.query(models.OAuthUser).filter(models.OAuthUser.id == id).first()
 
 
-def create_oauth_user(db: Session, user: schemas.User, oauth: schemas.OAuthBase) -> models.User:
+def create_oauth_user(db: Session, user: schemas.User, oauth: schemas.OAuthBase):
     try:
 
         db_user = create_user(db, user, commit=True)
@@ -67,17 +67,15 @@ def create_oauth_user(db: Session, user: schemas.User, oauth: schemas.OAuthBase)
             user_id=db_user.id,
             oauth_provider=oauth.oauth_provider)
 
-        # db.add(db_user)
         db.add(oauth_user)
-
         db.commit()
-
-        # db.refresh(db_user)
         db.refresh(oauth_user)
+        res = db.query(models.User).filter(
+            models.User.id == db_user.id).first()
+        print(res, res.oauth)
+        return res
 
     except IntegrityError as e:
         raise CustomDBError(err_type=IntegrityError, detail=e.orig)
-
-    return user
 
     # Post CRUD API
