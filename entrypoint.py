@@ -10,15 +10,11 @@ from src.routers import posts, token, users
 import uvicorn
 models.Base.metadata.create_all(bind=engine)
 
-session = requests.Session()
-session.headers.update({"accept": "application/json"})
-
-
 app = FastAPI()
 
 app.include_router(users.router)
 app.include_router(posts.router)
-# app.include_router(token.router)
+app.include_router(token.router)
 
 app.add_middleware(CORSMiddleware, allow_origins=origins,
                    allow_credentials=True, allow_methods=["*"], allow_headers=["*"],)

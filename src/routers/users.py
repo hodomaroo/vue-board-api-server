@@ -5,13 +5,31 @@ from src import schemas, models
 from src.crud import user as crud
 from src.error import CustomDBError
 from typing import Optional
+
+
 router = APIRouter(
     prefix="/users",
     tags=['users']
 )
 
 
-@router.get("", status_code=status.HTTP_200_OK)
+@router.get('/login', status_code=status.HTTP_200_OK, response_model=Optional[schemas.Token])
+def auth_user(response: Response, id: str, password: str):
+    
+
+
+@router.get("/check", status_code=status.HTTP_200_OK)
+def check_user_id_already_exist(response: Response, id: Optional[str] = None, email: Optional[str] = None, db: Session = Depends(get_db)) -> bool:
+    if id:
+        return crud.get_user_by_user_id(db=db, user_id=id) != None
+    if email:
+        return crud.get_user_by_email(db=db, email=email) != None
+
+    response.status_code = status.HTTP_404_NOT_FOUND
+    return response
+
+
+@router.get("", status_code=status.HTTP_200_OK, response_model=Optional[list[schemas.User]])
 async def get_all_users(db: Session = Depends(get_db)):
     # print("CHECK")
     return crud.get_users(db)
@@ -34,8 +52,6 @@ async def create_user(response: Response, user: schemas.UserCreate, oauth: Optio
         else:
             db_user = crud.create_oauth_user(
                 db=db, user=user, oauth=oauth)
-
-            print(schemas.User.from_orm(db_user))
 
         return db_user
 

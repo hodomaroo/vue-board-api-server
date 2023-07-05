@@ -1,9 +1,9 @@
 from fastapi import Response, Header, status, APIRouter
-from entrypoint import session
+from src.session import session
 import requests
 
 
-router = APIRouter(prefix="/login")
+router = APIRouter(prefix="/login", tags=['login'])
 
 
 @router.post("/oauth/access_token", status_code=200)

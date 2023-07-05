@@ -73,4 +73,8 @@ class Token(BaseModel):
         orm_mode = True
 
 
+class UserLogin(BaseModel):
+    user_id : str
+    password : str
+
 User.update_forward_refs()
