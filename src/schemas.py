@@ -66,15 +66,19 @@ class OAuthUser(OAuthBase):
 
 
 class Token(BaseModel):
-    token: str
-    expireDate: datetime
+    token: UUID4
+    refresh_token: UUID4
+
+    token_expire_date: datetime
+    refresh_token_expire_date: datetime
 
     class Config:
         orm_mode = True
 
 
 class UserLogin(BaseModel):
-    user_id : str
-    password : str
+    user_id: str
+    password: str
+
 
 User.update_forward_refs()

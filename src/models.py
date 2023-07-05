@@ -69,8 +69,13 @@ class UserToken(Base):
 
     id = Column(Uuid, primary_key=True, default=uuid.uuid4())
     user_id = Column(Uuid, ForeignKey('users.id'))
-    token = Column(String)
-    # Default token duration is 1hour
-    expireDate = Column(DateTime)
+    token = Column(Uuid, default=uuid.uuid4())
+    refresh_token = Column(Uuid, default=uuid.uuid4())
+
+    # Default token duration is 30 minutes, and refresh token duration is 1 hour
+    token_expire_date = Column(
+        DateTime, default=datetime.now() + timedelta(minutes=30))
+    refresh_token_expire_date = Column(
+        DateTime, default=datetime.now() + timedelta(hours=1))
 
     user = relationship('User', back_populates='token', foreign_keys=[user_id])
