@@ -65,7 +65,7 @@ class OAuthUser(OAuthBase):
         orm_mode = True
 
 
-class Token(BaseModel):
+class TokenResponse(BaseModel):
     token: UUID4
     refresh_token: UUID4
 
@@ -76,8 +76,36 @@ class Token(BaseModel):
         orm_mode = True
 
 
-class UserLogin(BaseModel):
+##### Validate Token #####
+
+class AccessRequest(BaseModel):
+    user_id: UUID4
+    token: UUID4
+
+
+class AccessResponse(BaseModel):
+    isValid: bool
+
+
+##### Refresh Token #####
+class RefreshTokenRequest(BaseModel):
     user_id: str
+    refresh_token: UUID4
+
+
+class RefreshTokenResponse(BaseModel):
+    isValid: bool
+    # Just Refrence TokenResponse Model. It doesn't need to Config orm_mode
+    token: Optional[UUID4]
+
+    class config:
+        orm_mode = True
+
+
+##### Login #####
+
+class UserLoginRequest(BaseModel):
+    user_id: UUID4
     password: str
 
 

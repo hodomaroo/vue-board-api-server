@@ -1,7 +1,7 @@
 from sqlalchemy import DateTime, Column, Uuid, String, ForeignKey, Text, Enum, CheckConstraint, Integer
 from sqlalchemy.orm import relationship
 
-from .database import Base
+from src.database import Base
 from datetime import datetime, timedelta
 import uuid
 from src.schemas import UserType, OAuthProvider

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Header, Response, status, Depends, HTTPException
 from src.database import get_db
 from sqlalchemy.orm import Session
-from src import schemas, models
+from src import schemas
 from src.crud import user as crud
 from src.error import CustomDBError
 from typing import Optional
@@ -11,11 +11,6 @@ router = APIRouter(
     prefix="/users",
     tags=['users']
 )
-
-
-@router.get('/login', status_code=status.HTTP_200_OK, response_model=Optional[schemas.Token])
-def auth_user(response: Response, id: str, password: str):
-    
 
 
 @router.get("/check", status_code=status.HTTP_200_OK)

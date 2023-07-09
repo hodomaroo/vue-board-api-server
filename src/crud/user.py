@@ -88,20 +88,7 @@ def create_oauth_user(db: Session, user: schemas.User, oauth: schemas.OAuthBase)
 
     # Post CRUD API
 
+# Validate User and return Auth Token
 
-def authenticate_user(db: Session, auth_info: schemas.UserLogin) -> models.User:
-    try:
-        match_user = get_user_by_user_id(db, auth_info.user_id)
 
-        if not match_user:
-            raise CustomDBError(err_type=IntegrityError,
-                                detail="아이디가 올바르지 않습니다.", tag='id')
 
-        if not bcrypt.checkpw(auth_info.password, match_user.hashed_password):
-            raise CustomDBError(err_type=IntegrityError,
-                                detail="비밀번호가 올바르지 않습니다.", tag='password')
-
-        return match_user
-
-    except Exception as e:
-        raise CustomDBError(err_type=IntegrityError, detail=e.orig)

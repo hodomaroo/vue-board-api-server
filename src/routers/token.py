@@ -1,37 +1,28 @@
-from fastapi import Response, Header, status, APIRouter
-from src.session import session
-import requests
+from fastapi import Response, Header, status, APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from typing import Optional
+
+from src.database import get_db
+from src.crud import user, token
+from src import schemas
+from src.error import CustomDBError
 
 
-router = APIRouter(prefix="/login", tags=['login'])
+router = APIRouter(
+    prefix="/token",
+    tags=['token']
+)
 
 
-@router.post("/oauth/access_token", status_code=200)
-async def access_token(client_id: str, client_secret: str, code: str, response: Response):
-    url = 'https://github.com/login/oauth/access_token'
-    payload = {
-        "client_id": client_id,
-        "client_secret": client_secret,
-        "code": code
-    }
-
-    res = session.post(
-        url=url, data=payload)
-
-    if res.status_code != status.HTTP_200_OK:
-        response.status_code = status.HTTP_400_BAD_REQUEST
-
-    return {"token_info": res.json()}
+# check token is validate
+@router.post("", status_code=status.HTTP_200_OK, response_model=Optional[schemas.AccessResponse])
+def validate_token(response: Response, tokenRequest: schemas.AccessRequest, db: Session = Depends(get_db)):
+    return token.validate_token(db, tokenRequest)
 
 
-@router.get("/oauth/user", status_code=200)
-async def user_info(response: Response, Authorization: str = Header()):
-    print(Authorization)
-    url = 'https://api.github.com/user'
-    res = requests.get(
-        url=url, headers={"Authorization": Authorization})
-
-    if res.status_code != status.HTTP_200_OK:
-        response.status_code = status.HTTP_400_BAD_REQUEST
-
-    return {"user_info": res.json()}
+@router.post("/refresh", status_code=status.HTTP_200_OK, response_model=schemas.RefreshTokenResponse)
+def refresh_token(tokenRefreshInfo: schemas.RefreshTokenRequest, db: Session = Depends(get_db)):
+    try:
+        return token.refresh_token(db, tokenRefreshInfo)
+    except CustomDBError as e:
+        raise HTTPException(detail=e.tag)
